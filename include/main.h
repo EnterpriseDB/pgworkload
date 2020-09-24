@@ -11,6 +11,7 @@
 
 #include <boost/thread.hpp>
 
+extern bool DEBUG;
 extern boost::mutex cout_lock;
 
 int main(int argc, const char *argv[]);

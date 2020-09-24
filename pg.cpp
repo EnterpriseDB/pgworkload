@@ -48,7 +48,7 @@ bool pgconn::connect()
             boost::algorithm::trim(error);
             m_last_error = error;
             cout_lock.lock();
-            std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", error connecting: " << error << '\n';
+            std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", error connecting: " << error << std::endl;
             cout_lock.unlock();
 
             PQfinish(m_conn);
@@ -57,12 +57,12 @@ bool pgconn::connect()
         }
     }
 
-    if (m_conn != NULL)
+    if (m_conn != NULL && DEBUG)
     {
         std::string pid = this->exec_scalar("SELECT pg_backend_pid();");
         std::string version = this->exec_scalar("SELECT version();");
         cout_lock.lock();
-        std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", backend PID: " << pid << ", version: " << version << '\n';
+        std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", backend PID: " << pid << ", version: " << version << std::endl;
         cout_lock.unlock();
     }
 
@@ -76,9 +76,12 @@ std::string pgconn::exec_scalar(const std::string& query)
     PGresult *res;
     std::string value = "";
 
-    cout_lock.lock();
-    std::cout << "Client: " << m_client << ", executing: " << query << '\n';
-    cout_lock.unlock();
+    if (DEBUG)
+    {
+        cout_lock.lock();
+        std::cout << "Client: " << m_client << ", executing: " << query << std::endl;
+        cout_lock.unlock();
+    }
 
     res = PQexec(m_conn, query.c_str());
 

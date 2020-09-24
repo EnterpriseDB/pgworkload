@@ -39,7 +39,8 @@ bool client::connect()
     m_conn = new pgconn(m_client, m_connstr);
     if (!m_conn->connect())
     {
-        std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", error connecting: " << m_conn->get_last_error() << ". Exiting.\n";
+        std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", error connecting: " << \
+                m_conn->get_last_error() << ". Exiting." << std::endl;
         return false;
     }
 

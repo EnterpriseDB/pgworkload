@@ -19,6 +19,9 @@
 namespace bpo = boost::program_options;
 namespace bpt = boost::posix_time;
 
+// Debug mode?
+bool DEBUG = false;
+
 // Global mutex for writing to cout
 boost::mutex cout_lock;
 
@@ -32,6 +35,7 @@ int main(int argc, const char *argv[])
     desc.add_options()
             ("help,h", "display help message")
             ("connection,c", bpo::value<std::string>(), "PostgreSQL connection string")
+            ("debug,d", bpo::value<bool>(), "enable debugging output")
             ("operations,o", bpo::value<int>()->default_value(10), "number of operations per client thread (-1 == infinite)")
             ("scale,s", bpo::value<int>()->required(), "pgbench scale factor (required)")
             ("threads,t", bpo::value<int>()->default_value(5), "number of client threads");
@@ -48,11 +52,15 @@ int main(int argc, const char *argv[])
             return 1;
         }
 
+        // Debugging?
+        if (vm.count("debug"))
+            DEBUG = true;
+
         connstr = vm["connection"].as<std::string>();
         threads = vm["threads"].as<int>();
         operations = vm["operations"].as<int>();
         scale = vm["scale"].as<int>();
-        std::cout << "Using " << threads << " threads and " << operations << " operations per thread.\n";
+        std::cout << "Using " << threads << " threads and " << operations << " operations per thread." << std::endl;
     }
     catch (const bpo::error &ex)
     {
@@ -72,6 +80,10 @@ int main(int argc, const char *argv[])
         client * c = new client(i + 1, scale, operations, connstr);
         clients.push_back(new boost::thread(&client::run, c));
     }
+
+    cout_lock.lock();
+    std::cout << "Running..." << std::endl;
+    cout_lock.unlock();
 
     for (int i = 0; i < threads; ++i)
     {
