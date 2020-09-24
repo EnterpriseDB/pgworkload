@@ -7,14 +7,17 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <ctime>
 
 #include <boost/thread.hpp>
 #include <boost/program_options.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "include/main.h"
 #include "include/client.h"
 
 namespace bpo = boost::program_options;
+namespace bpt = boost::posix_time;
 
 // Global mutex for writing to cout
 boost::mutex cout_lock;
@@ -61,6 +64,9 @@ int main(int argc, const char *argv[])
     // Create a vector of threads and kick off the clients
     std::vector<boost::thread *> clients;
 
+    // Start the timer
+    bpt::ptime start_time = bpt::microsec_clock::local_time();
+
     for (int i = 0; i < threads; ++i)
     {
         client * c = new client(i + 1, scale, operations, connstr);
@@ -72,6 +78,16 @@ int main(int argc, const char *argv[])
         clients[i]->join();
         delete clients[i];
     }
+
+    // Finish timing
+    bpt::ptime end_time = bpt::microsec_clock::local_time();
+    bpt::time_duration duration = end_time - start_time;
+
+    double transactions = threads * operations;
+    double seconds = duration.total_milliseconds() / (double)1000;
+    double tps = transactions / (duration.total_milliseconds() / (double)1000);
+    std::cout << transactions << " transactions completed in " << \
+            seconds << " seconds (" << tps << " transactions per second)." << std::endl;
 
     return 0;
 }
