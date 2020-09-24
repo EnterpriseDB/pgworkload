@@ -51,8 +51,12 @@ Use *cmake* to configure the build, and then run *make*.
 * Add workload profile support to vary the number of clients over time.
 * Add random think times to the standard workload.
 * Add the ability to initialise the schema.
-* Add the ability to provide custom workload scripts as a mix of SQL queries, variables and expressions 
+* Add the ability to provide custom workload scripts as a mix of SQL 
+queries, variables and expressions 
 (e.g. SET foo = random(1,50) ), and control statements (e.g. SLEEP 5).
+* Error handling for database operations.
+* Exception injection; allow the workload to be varied outside of the 
+profile, to simulate unexpected load or lack thereof.
 
 ## Licence
 
