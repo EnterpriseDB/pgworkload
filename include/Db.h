@@ -6,18 +6,18 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef PGWORKLOAD_PG_H
-#define PGWORKLOAD_PG_H
+#ifndef PGWORKLOAD_DB_H
+#define PGWORKLOAD_DB_H
 
 #include <string>
 
 #include <libpq-fe.h>
 
-class pgconn {
+class DB {
 
 public:
-    ~pgconn();
-    pgconn(int client, const std::string& connstr);
+    ~DB();
+    DB(int client, const std::string& connstr);
 
     bool connect();
     std::string exec_scalar(const std::string& query);
@@ -30,4 +30,4 @@ private:
 };
 
 
-#endif //PGWORKLOAD_PG_H
+#endif //PGWORKLOAD_DB_H

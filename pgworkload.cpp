@@ -7,14 +7,15 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
-#include <ctime>
 
 #include <boost/thread.hpp>
 #include <boost/program_options.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "include/main.h"
-#include "include/client.h"
+#include "include/pgworkload.h"
+#include "include/Client.h"
+#include "include/Profile.h"
+
 
 namespace bpo = boost::program_options;
 namespace bpt = boost::posix_time;
@@ -28,7 +29,7 @@ boost::mutex cout_lock;
 int main(int argc, const char *argv[])
 {
     int threads, operations, scale;
-    std::string connstr, workload;
+    std::string connstr, profile_file;
 
     // Command line option handling
     bpo::options_description desc("Allowed options");
@@ -37,6 +38,7 @@ int main(int argc, const char *argv[])
             ("connection,c", bpo::value<std::string>(), "PostgreSQL connection string")
             ("debug,d", bpo::value<bool>(), "enable debugging output")
             ("operations,o", bpo::value<int>()->default_value(10), "number of operations per client thread (-1 == infinite)")
+            ("profile,p", bpo::value<std::string>(), "filename to load the Profile from")
             ("scale,s", bpo::value<int>()->required(), "pgbench scale factor (required)")
             ("threads,t", bpo::value<int>()->default_value(5), "number of client threads");
 
@@ -59,6 +61,10 @@ int main(int argc, const char *argv[])
         connstr = vm["connection"].as<std::string>();
         threads = vm["threads"].as<int>();
         operations = vm["operations"].as<int>();
+
+        if (vm.count("profile"))
+            profile_file = vm["profile"].as<std::string>();
+
         scale = vm["scale"].as<int>();
         std::cout << "Using " << threads << " threads and " << operations << " operations per thread." << std::endl;
     }
@@ -69,6 +75,16 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
+    // Load the Profile if specified
+    Profile *profile = NULL;
+    if (profile_file != "")
+    {
+        profile = new Profile();
+        if (!profile->load_profile(profile_file))
+            return 1;
+        std::cout << "Workload profile loaded from: " << profile_file << std::endl;
+    }
+
     // Create a vector of threads and kick off the clients
     std::vector<boost::thread *> clients;
 
@@ -77,8 +93,8 @@ int main(int argc, const char *argv[])
 
     for (int i = 0; i < threads; ++i)
     {
-        client * c = new client(i + 1, scale, operations, connstr);
-        clients.push_back(new boost::thread(&client::run, c));
+        Client * c = new Client(i + 1, scale, operations, connstr);
+        clients.push_back(new boost::thread(&Client::run, c));
     }
 
     cout_lock.lock();

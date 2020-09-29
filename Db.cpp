@@ -12,13 +12,13 @@
 #include <boost/algorithm/string.hpp>
 #include <libpq-fe.h>
 
-#include "include/main.h"
-#include "include/pg.h"
+#include "include/pgworkload.h"
+#include "include/DB.h"
 
 namespace btt = boost::this_thread;
 
 
-pgconn::pgconn(int client, const std::string& connstr) :
+DB::DB(int client, const std::string& connstr) :
     m_client(client),
     m_connstr(connstr),
     m_conn(NULL)
@@ -27,7 +27,7 @@ pgconn::pgconn(int client, const std::string& connstr) :
 }
 
 
-pgconn::~pgconn()
+DB::~DB()
 {
     if (m_conn)
         PQfinish(m_conn);
@@ -35,7 +35,7 @@ pgconn::~pgconn()
 
 
 // Connect to the server
-bool pgconn::connect()
+bool DB::connect()
 {
     const char *cstr = m_connstr.c_str();
     if (cstr != NULL)
@@ -71,7 +71,7 @@ bool pgconn::connect()
 
 
 // Execute a query, returning a scalar result
-std::string pgconn::exec_scalar(const std::string& query)
+std::string DB::exec_scalar(const std::string& query)
 {
     PGresult *res;
     std::string value = "";

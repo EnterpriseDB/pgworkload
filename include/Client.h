@@ -9,12 +9,12 @@
 #ifndef PGWORKLOAD_CLIENT_H
 #define PGWORKLOAD_CLIENT_H
 
-#include "pg.h"
+#include "DB.h"
 
-class client {
+class Client {
 public:
-    client(int client, int scale, int operations, const std::string& connstr);
-    ~client();
+    Client(int client, int scale, int operations, const std::string& connstr);
+    ~Client();
 
     bool connect();
 
@@ -23,7 +23,7 @@ public:
 
 private:
     int m_client, m_scale, m_operations;
-    pgconn *m_conn;
+    DB *m_conn;
     std::string m_connstr;
 };
 

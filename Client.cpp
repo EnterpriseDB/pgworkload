@@ -10,13 +10,13 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "include/main.h"
-#include "include/client.h"
-#include "include/pg.h"
+#include "include/pgworkload.h"
+#include "include/Client.h"
+#include "include/DB.h"
 
 namespace btt = boost::this_thread;
 
-client::client(int client, int scale, int operations, const std::string& connstr) :
+Client::Client(int client, int scale, int operations, const std::string& connstr) :
     m_client(client),
     m_scale(scale),
     m_operations(operations),
@@ -26,7 +26,7 @@ client::client(int client, int scale, int operations, const std::string& connstr
 
 }
 
-client::~client()
+Client::~Client()
 {
     if (m_conn)
         delete m_conn;
@@ -34,9 +34,9 @@ client::~client()
 
 
 // Connect to the server
-bool client::connect()
+bool Client::connect()
 {
-    m_conn = new pgconn(m_client, m_connstr);
+    m_conn = new DB(m_client, m_connstr);
     if (!m_conn->connect())
     {
         std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", error connecting: " << \
@@ -49,7 +49,7 @@ bool client::connect()
 
 
 // Run the workload, in a loop
-void client::run()
+void Client::run()
 {
     if (!this->connect())
         return;
@@ -70,7 +70,7 @@ void client::run()
 
 
 // Run a single transaction
-void client::transaction()
+void Client::transaction()
 {
     long aid, bid, tid, delta;
     std::ostringstream query;

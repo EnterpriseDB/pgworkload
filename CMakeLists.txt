@@ -14,9 +14,15 @@ endif()
 
 add_executable(
         ${PROJECT_NAME}
-        main.cpp
-        include/main.h
-        pg.cpp include/pg.h client.cpp include/client.h)
+        pgworkload.cpp
+        Client.cpp
+        DB.cpp
+        Profile.cpp
+        include/pgworkload.h
+        include/Client.h
+        include/DB.h
+        include/Profile.h
+)
 
 target_include_directories(
         ${PROJECT_NAME}
