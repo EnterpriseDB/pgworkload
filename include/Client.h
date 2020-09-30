@@ -17,6 +17,7 @@ public:
     ~Client();
 
     bool connect();
+    void disconnect();
 
     void run();
     void transaction();

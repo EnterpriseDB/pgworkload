@@ -48,23 +48,41 @@ bool Client::connect()
 }
 
 
+// Connect to the server
+void Client::disconnect()
+{
+    m_conn->disconnect();
+}
+
+
 // Run the workload, in a loop
 void Client::run()
 {
-    if (!this->connect())
-        return;
-
     // Initialise the PRNG
     srand((unsigned) time(0));
 
     // If operations is negative, run indefinitely.
     if (m_operations < 0) {
         while(1)
+        {
+            if (!this->connect())
+                return;
+
             this->transaction();
+
+            this->disconnect();
+        }
     }
     else {
         for (int x = 0; x < m_operations; x++)
+        {
+            if (!this->connect())
+                return;
+
             this->transaction();
+
+            this->disconnect();
+        }
     }
 }
 
