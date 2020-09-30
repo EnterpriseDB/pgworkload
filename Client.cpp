@@ -16,11 +16,13 @@
 
 namespace btt = boost::this_thread;
 
-Client::Client(int client, int scale, int operations, const std::string& connstr) :
+Client::Client(int client, int scale, int operations, int think, const std::string& connstr, Profile *profile) :
     m_client(client),
     m_scale(scale),
     m_operations(operations),
+    m_think(think),
     m_connstr(connstr),
+    m_profile(profile),
     m_conn(NULL)
 {
 
@@ -66,12 +68,45 @@ void Client::run()
     // Main loop
     while(1)
     {
+        // Only run if the profile says we're not at maximum load for the time
+        int workload = m_profile->get_workload();
+
+        // Sleep for a minimum of 1 second, otherwise the maximum sleep time
+        int sleep = (m_think == 0) ? 1 : m_think;
+
+        // Lock the thread counter and figure out whether or not to sleep
+        active_threads_lock.lock();
+        if (active_threads >= workload)
+        {
+            active_threads_lock.unlock();
+            if (DEBUG)
+            {
+                cout_lock.lock();
+                std::cout << "Client: " << std::dec << m_client << ", thread: " << btt::get_id() << \
+                            ", sleeping for " << sleep << " seconds because " << active_threads << \
+                            " are running and the profile defines " << workload << " at this time." << std::endl;
+                cout_lock.unlock();
+            }
+            btt::sleep(boost::posix_time::seconds(sleep));
+            continue;
+        }
+
+        // We're moving ahead, so increment the client count and go
+        active_threads++;
+        active_threads_lock.unlock();
+
+        // Connect, run a transaction, and then disconnect
         if (!this->connect())
             return;
 
         this->transaction();
 
         this->disconnect();
+
+        // Decrement the thread counter
+        active_threads_lock.lock();
+        active_threads--;
+        active_threads_lock.unlock();
 
         // If operations is negative, run indefinitely.
         if (m_operations != -1)
@@ -103,6 +138,17 @@ void Client::transaction()
     query.str("");
     query << "UPDATE pgbench_accounts SET abalance = abalance + " << delta << " WHERE aid = " << aid << ";";
     m_conn->exec_scalar(query.str());
+
+    // Think time
+    long think = (m_think == 0) ? 0 : (rand() % (m_think * 1000) + 1);
+    if (DEBUG)
+    {
+        cout_lock.lock();
+        std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", thinking for " << \
+                    think << " milliseconds." << std::endl;
+        cout_lock.unlock();
+    }
+    btt::sleep(boost::posix_time::milliseconds(think));
 
     // Select the account balance
     query.str("");

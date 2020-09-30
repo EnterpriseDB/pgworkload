@@ -10,10 +10,11 @@
 #define PGWORKLOAD_CLIENT_H
 
 #include "DB.h"
+#include "Profile.h"
 
 class Client {
 public:
-    Client(int client, int scale, int operations, const std::string& connstr);
+    Client(int client, int scale, int operations, int think, const std::string& connstr, Profile *profile);
     ~Client();
 
     bool connect();
@@ -23,8 +24,9 @@ public:
     void transaction();
 
 private:
-    int m_client, m_scale, m_operations;
+    int m_client, m_scale, m_operations, m_think;
     DB *m_conn;
+    Profile *m_profile;
     std::string m_connstr;
 };
 

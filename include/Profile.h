@@ -23,12 +23,13 @@ class Profile {
 
 public:
     ~Profile();
-    Profile();
+    Profile(int threads);
 
     bool load_profile(const std::string& profile_path);
     double get_workload();
 
 private:
+    int m_threads;
     std::string m_profile_def;
     std::array<double, TOTAL_POINTS> m_profile_data;
     boost::posix_time::ptime m_start_time;

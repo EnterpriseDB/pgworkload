@@ -12,8 +12,14 @@
 #include <boost/thread.hpp>
 
 extern bool DEBUG;
+
 extern boost::mutex cout_lock;
 
+extern int active_threads;
+extern boost::mutex active_threads_lock;
+
+
 int main(int argc, const char *argv[]);
+void status();
 
 #endif //PGWORKLOAD_MAIN_H

@@ -27,10 +27,14 @@ $ pgworkload --help
 Allowed options:
   -h [ --help ]                 display help message
   -c [ --connection ] arg       PostgreSQL connection string
+  -d [ --debug ] arg            enable debugging output
   -o [ --operations ] arg (=10) number of operations per client thread (-1 == 
                                 infinite)
+  -p [ --profile ] arg          filename to load the Profile from
   -s [ --scale ] arg            pgbench scale factor (required)
+  -i [ --think ] arg (=0)       maximum think time in seconds between queries
   -t [ --threads ] arg (=5)     number of client threads
+
 ```
 
 For example:
@@ -48,8 +52,6 @@ Use *cmake* to configure the build, and then run *make*.
 
 ## TODO
 
-* Add workload Profile support to vary the number of clients over time.
-* Add random think times to the standard workload.
 * Add the ability to initialise the schema.
 * Add the ability to provide custom workload scripts as a mix of SQL 
 queries, variables and expressions 
