@@ -12,16 +12,16 @@
 #include <vector>
 #include <array>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/interpolators/catmull_rom.hpp>
 
 #include "include/Profile.h"
 
-const int MIN_CONFIG_POINTS = 4; // Required by Catmull-Rom
-const int MAX_CONFIG_POINTS = 168; // 1 week in hours
-const int TOTAL_POINTS = 10080; // 1 week in minutes
+namespace bpt = boost::posix_time;
 
 
-Profile::Profile()
+Profile::Profile() :
+    m_start_time(boost::posix_time::microsec_clock::local_time())
 {
 
 }
@@ -47,8 +47,8 @@ bool Profile::load_profile(const std::string& profile_path)
     }
 
     // Loop through each line in the profile, and attempt to load the data
-    int i = 0;
-    int l = 0;
+    int point_count = 0;
+    int line_count = 0;
     std::string line;
 
     while (getline(inp, line))
@@ -59,18 +59,18 @@ bool Profile::load_profile(const std::string& profile_path)
             // Attempt to load a double. Ignore any errors, but dump a message
             try
             {
-                points[i] = {std::stod(line)};
-                i++;
+                points[point_count] = {std::stod(line)};
+                point_count++;
             }
             catch (const std::exception& e)
             {
-                std::cout << "Ignoring invalid value on line " << l << ": '" << line << "'" << std::endl;
+                std::cout << "Ignoring invalid value on line " << line_count << ": '" << line << "'" << std::endl;
             }
         }
-        l++;
+        line_count++;
 
         // If we have more data than we want, throw a warning and quit loading
-        if (i >= MAX_CONFIG_POINTS)
+        if (point_count >= MAX_CONFIG_POINTS)
         {
             std::cout << "More than 168 values found. Ignoring additional ones." << std::endl;
             break;
@@ -78,15 +78,15 @@ bool Profile::load_profile(const std::string& profile_path)
     }
 
     // We need at least 4 points for Catmull-Rom
-    if (i < MIN_CONFIG_POINTS)
+    if (point_count < MIN_CONFIG_POINTS)
     {
         std::cout << "At least 4 values must be included in the profile definition. Exiting." << std::endl;
         return false;
     }
 
     // Trim the vector so it matches the size of what was loaded
-    for (int x = MAX_CONFIG_POINTS-1; x >= i; x--)
-        points.erase(points.begin() + x);
+    for (int i = MAX_CONFIG_POINTS-1; i >= point_count; i--)
+        points.erase(points.begin() + i);
 
     // Do the Catmull-Rom thing
     boost::math::catmull_rom<std::array<double, 2>> cr(std::move(points));
@@ -97,8 +97,22 @@ bool Profile::load_profile(const std::string& profile_path)
     for (int i = 0; i < TOTAL_POINTS; i++)
     {
         double arg = max_s*i/double(TOTAL_POINTS);
-        m_profile_data = cr(arg);
+        m_profile_data[i] = cr(arg)[0];
     }
 
     return true;
+}
+
+
+// Return the expected workload percentage at this point in time
+double Profile::get_workload()
+{
+    // Get the time diff
+    bpt::ptime current_time = bpt::microsec_clock::local_time();
+    bpt::time_duration time_diff = current_time - m_start_time;
+
+    // Figure out what minute to access in the profile data
+    int minute = ((time_diff.hours() * 60) + time_diff.minutes()) % TOTAL_POINTS;
+
+    return m_profile_data[minute];
 }

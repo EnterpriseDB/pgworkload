@@ -70,6 +70,17 @@ bool DB::connect()
 }
 
 
+// Connect to the server
+void DB::disconnect()
+{
+    if (m_conn)
+    {
+        PQfinish(m_conn);
+        m_conn = NULL;
+    }
+}
+
+
 // Execute a query, returning a scalar result
 std::string DB::exec_scalar(const std::string& query)
 {

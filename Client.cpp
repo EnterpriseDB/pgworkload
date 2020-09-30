@@ -61,27 +61,24 @@ void Client::run()
     // Initialise the PRNG
     srand((unsigned) time(0));
 
-    // If operations is negative, run indefinitely.
-    if (m_operations < 0) {
-        while(1)
+    long operations = 0;
+
+    // Main loop
+    while(1)
+    {
+        if (!this->connect())
+            return;
+
+        this->transaction();
+
+        this->disconnect();
+
+        // If operations is negative, run indefinitely.
+        if (m_operations != -1)
         {
-            if (!this->connect())
-                return;
-
-            this->transaction();
-
-            this->disconnect();
-        }
-    }
-    else {
-        for (int x = 0; x < m_operations; x++)
-        {
-            if (!this->connect())
-                return;
-
-            this->transaction();
-
-            this->disconnect();
+            operations++;
+            if (operations >= m_operations)
+                break;
         }
     }
 }

@@ -20,6 +20,8 @@ public:
     DB(int client, const std::string& connstr);
 
     bool connect();
+    void disconnect();
+
     std::string exec_scalar(const std::string& query);
     std::string get_last_error() { return m_last_error; };
 
