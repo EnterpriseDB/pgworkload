@@ -20,7 +20,8 @@
 namespace bpt = boost::posix_time;
 
 
-Profile::Profile() :
+Profile::Profile(int threads) :
+    m_threads(threads),
     m_start_time(boost::posix_time::microsec_clock::local_time())
 {
 
@@ -35,6 +36,17 @@ Profile::~Profile()
 
 bool Profile::load_profile(const std::string& profile_path)
 {
+    // If there's no profile path specified, just populate the
+    // workload array with values of 100.
+    if (profile_path == "")
+    {
+        for (int i=0; i < TOTAL_POINTS; i++)
+            m_profile_data[i] = 100;
+
+        std::cout << "Default workload profile of 100% constant activity loaded." << std::endl;
+        return true;
+    }
+
     // Vector to hold the input profile
     std::vector<std::array<double, 2>> points(MAX_CONFIG_POINTS);
 
@@ -100,11 +112,13 @@ bool Profile::load_profile(const std::string& profile_path)
         m_profile_data[i] = cr(arg)[0];
     }
 
+    std::cout << "Workload profile loaded from: " << profile_path << std::endl;
+
     return true;
 }
 
 
-// Return the expected workload percentage at this point in time
+// Return the expected workload in threads at this point in time
 double Profile::get_workload()
 {
     // Get the time diff
@@ -114,5 +128,8 @@ double Profile::get_workload()
     // Figure out what minute to access in the profile data
     int minute = ((time_diff.hours() * 60) + time_diff.minutes()) % TOTAL_POINTS;
 
-    return m_profile_data[minute];
+    // Get the number of threads we expect
+    int threads = m_threads * m_profile_data[minute] / 100;
+
+    return threads;
 }
