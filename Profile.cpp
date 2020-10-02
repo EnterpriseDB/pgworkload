@@ -18,13 +18,23 @@
 #include "include/Profile.h"
 
 namespace bpt = boost::posix_time;
+namespace bpg = boost::gregorian;
 
 
 Profile::Profile(int threads) :
-    m_threads(threads),
-    m_start_time(boost::posix_time::microsec_clock::local_time())
+    m_threads(threads)
 {
+    // Get the time diff from now to 00:00:00 on the previous Monday
+    bpg::date d = bpg::day_clock::local_day();
 
+    while (d.day_of_week().as_number() != 1)
+        d -= bpg::days(1);
+
+    m_start_time = bpt::ptime(d, bpt::time_duration(0,0,0));
+
+    bpg::date_facet *df = new bpg::date_facet{"%A, %d %B %Y"};
+    std::cout.imbue(std::locale{std::cout.getloc(), df});
+    std::cout << "Profile epoch: " << m_start_time << "\n";
 }
 
 
@@ -121,7 +131,6 @@ bool Profile::load_profile(const std::string& profile_path)
 // Return the expected workload in threads at this point in time
 double Profile::get_workload()
 {
-    // Get the time diff
     bpt::ptime current_time = bpt::microsec_clock::local_time();
     bpt::time_duration time_diff = current_time - m_start_time;
 
