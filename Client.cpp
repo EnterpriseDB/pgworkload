@@ -75,10 +75,8 @@ void Client::run()
         int sleep = (m_think == 0) ? 1 : m_think;
 
         // Lock the thread counter and figure out whether or not to sleep
-        active_threads_lock.lock();
         if (active_threads >= workload)
         {
-            active_threads_lock.unlock();
             if (DEBUG)
             {
                 cout_lock.lock();
@@ -93,15 +91,12 @@ void Client::run()
 
         // We're moving ahead, so increment the client count and go
         active_threads++;
-        active_threads_lock.unlock();
 
         // Connect, run a transaction, and then disconnect
         if (!this->connect())
         {
             // Decrement the thread counter
-            active_threads_lock.lock();
             active_threads--;
-            active_threads_lock.unlock();
 
             return;
         }
@@ -111,9 +106,7 @@ void Client::run()
         this->disconnect();
 
         // Decrement the thread counter
-        active_threads_lock.lock();
         active_threads--;
-        active_threads_lock.unlock();
 
         // If operations is negative, run indefinitely.
         if (m_operations != -1)
@@ -147,15 +140,20 @@ void Client::transaction()
     m_conn->exec_scalar(query.str());
 
     // Think time
-    long think = (m_think == 0) ? 0 : (rand() % (m_think * 1000) + 1);
-    if (DEBUG)
+    double think = (m_think == 0) ? 0 : ((rand() % (m_think * 1000) + 1) / double(1000));
+    if (think > 0 && DEBUG)
     {
         cout_lock.lock();
         std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", thinking for " << \
-                    think << " milliseconds." << std::endl;
+                    long(think * 1000) << " milliseconds." << std::endl;
         cout_lock.unlock();
     }
-    btt::sleep(boost::posix_time::milliseconds(think));
+    if (think > 0)
+    {
+        query.str("");
+        query << "SELECT pg_sleep(" << think << ");";
+        m_conn->exec_scalar(query.str());
+    }
 
     // Select the account balance
     query.str("");

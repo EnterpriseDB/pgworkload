@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include <boost/atomic.hpp>
 #include <boost/thread.hpp>
 #include <boost/program_options.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -28,13 +29,14 @@ bool DEBUG = false;
 boost::mutex cout_lock;
 
 // Active threads tally
-int active_threads = 0;
-boost::mutex active_threads_lock;
+boost::atomic<int> active_threads;
 
 int main(int argc, const char *argv[])
 {
     int threads, operations, scale, think;
     std::string connstr, profile_file;
+
+    active_threads = 0;
 
     // Command line option handling
     bpo::options_description desc("Allowed options");
