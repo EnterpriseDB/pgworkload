@@ -71,9 +71,6 @@ void Client::run()
         // Only run if the profile says we're not at maximum load for the time
         int workload = m_profile->get_workload();
 
-        // Sleep for a minimum of 1 second, otherwise the maximum sleep time
-        int sleep = (m_think == 0) ? 1 : m_think;
-
         // Lock the thread counter and figure out whether or not to sleep
         if (active_threads >= workload)
         {
@@ -81,11 +78,13 @@ void Client::run()
             {
                 cout_lock.lock();
                 std::cout << "Client: " << std::dec << m_client << ", thread: " << btt::get_id() << \
-                            ", sleeping for " << sleep << " seconds because " << active_threads << \
-                            " are running and the profile defines " << workload << " at this time." << std::endl;
+                            ", sleeping because " << active_threads <<  " are running and the profile defines " << \
+                            workload << " at this time." << std::endl;
                 cout_lock.unlock();
             }
-            btt::sleep(boost::posix_time::seconds(sleep));
+
+            // Sleep for 100ms as there's no work to do
+            btt::sleep(boost::posix_time::milliseconds(100));
             continue;
         }
 
