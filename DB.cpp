@@ -48,7 +48,8 @@ bool DB::connect()
             boost::algorithm::trim(error);
             m_last_error = error;
             cout_lock.lock();
-            std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", error connecting: " << error << std::endl;
+            std::cout << std::dec << "Client: " << m_client << ", thread: " << \
+                        btt::get_id() << ", error connecting: " << error << std::endl;
             cout_lock.unlock();
 
             PQfinish(m_conn);
@@ -62,7 +63,8 @@ bool DB::connect()
         std::string pid = this->exec_scalar("SELECT pg_backend_pid();");
         std::string version = this->exec_scalar("SELECT version();");
         cout_lock.lock();
-        std::cout << "Client: " << m_client << ", thread: " << btt::get_id() << ", backend PID: " << pid << ", version: " << version << std::endl;
+        std::cout << std::dec << "Client: " << m_client << ", thread: " << btt::get_id() << \
+                    ", backend PID: " << pid << ", version: " << version << std::endl;
         cout_lock.unlock();
     }
 
@@ -90,7 +92,7 @@ std::string DB::exec_scalar(const std::string& query)
     if (DEBUG)
     {
         cout_lock.lock();
-        std::cout << "Client: " << m_client << ", executing: " << query << std::endl;
+        std::cout << std::dec << "Client: " << m_client << ", executing: " << query << std::endl;
         cout_lock.unlock();
     }
 
