@@ -133,6 +133,6 @@ void status()
     while (1)
     {
         btt::sleep_for(boost::chrono::seconds{1});
-        std::cout << "\rActive threads: " << active_threads << "         " << std::flush;
+        std::cout << std::dec << "\rActive threads: " << active_threads << "         " << std::flush;
     }
 }
