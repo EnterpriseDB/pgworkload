@@ -97,7 +97,14 @@ void Client::run()
 
         // Connect, run a transaction, and then disconnect
         if (!this->connect())
+        {
+            // Decrement the thread counter
+            active_threads_lock.lock();
+            active_threads--;
+            active_threads_lock.unlock();
+
             return;
+        }
 
         this->transaction();
 
