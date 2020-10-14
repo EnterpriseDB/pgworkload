@@ -20,10 +20,17 @@ namespace btt = boost::this_thread;
 
 DB::DB(int client, const std::string& connstr) :
     m_client(client),
-    m_connstr(connstr),
     m_conn(NULL)
 {
-
+    // Set the application_name if not already present
+    if (connstr.find("application_name") == std::string::npos)
+    {
+        std::ostringstream tmp_connstr;
+        tmp_connstr << connstr << " application_name='pgworkload client #" << m_client << "'";
+        m_connstr = tmp_connstr.str();
+    }
+    else
+        m_connstr = connstr;
 }
 
 
