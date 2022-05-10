@@ -3,7 +3,7 @@ project(pgworkload)
 
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(Boost 1.70.0 COMPONENTS system thread program_options REQUIRED)
+find_package(Boost 1.70.0 COMPONENTS system chrono thread program_options REQUIRED)
 find_package(PostgreSQL REQUIRED)
 
 if(Boost_FOUND)
